@@ -1,6 +1,5 @@
 package tw.edu.ntub.imd.birc.practice.service.impl;
 
-import org.springframework.transaction.annotation.Transactional;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.dao.BaseDAO;
 import tw.edu.ntub.imd.birc.practice.service.BaseService;
 import tw.edu.ntub.imd.birc.practice.service.transformer.BeanEntityTransformer;
@@ -18,7 +17,6 @@ public abstract class BaseServiceImpl<B, E, ID extends Serializable> extends Bas
         this.baseDAO = d;
     }
 
-    @Transactional
     @Override
     public void update(ID id, B b) {
         Optional<E> optional = baseDAO.findById(id);
@@ -31,7 +29,6 @@ public abstract class BaseServiceImpl<B, E, ID extends Serializable> extends Bas
         }
     }
 
-    @Transactional
     @Override
     public void delete(ID id) {
         baseDAO.deleteById(id);
