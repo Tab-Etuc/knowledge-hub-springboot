@@ -15,17 +15,14 @@ import tw.edu.ntub.imd.birc.practice.service.dto.BookListBean;
 import tw.edu.ntub.imd.birc.practice.service.transformer.BookTransformer;
 import tw.edu.ntub.birc.common.util.CollectionUtils;
 
+import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
+
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> implements BookService {
-
-    private static final ZoneId TAIPEI_ZONE = ZoneId.of("Asia/Taipei");
-    private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
     private final BookDAO bookDAO;
     private final BorrowRecordDAO borrowRecordDAO;
@@ -120,7 +117,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
             throw new BookAlreadyBorrowedException();
         }
 
-        LocalDateTime now = LocalDateTime.now(TAIPEI_ZONE);
+        LocalDateTime now = LocalDateTime.now(LocalDateTimeUtils.TAIPEI_ZONE);
         book.setBorrowedAt(now);
         book.setReturnedAt(null);
 
@@ -132,7 +129,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
 
         bookDAO.update(book);
 
-        return now.atZone(TAIPEI_ZONE).format(ISO_FORMATTER);
+        return LocalDateTimeUtils.formatIso8601(now);
     }
 
     @Override
@@ -144,7 +141,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
             throw new BookNotBorrowedException();
         }
 
-        LocalDateTime now = LocalDateTime.now(TAIPEI_ZONE);
+        LocalDateTime now = LocalDateTime.now(LocalDateTimeUtils.TAIPEI_ZONE);
 
         // 直接查詢該 ISBN 尚未歸還的最新借閱紀錄
         borrowRecordDAO.findFirstByIsbnAndReturnedAtIsNullOrderByBorrowedAtDesc(isbn)
@@ -157,7 +154,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
         book.setReturnedAt(now);
         bookDAO.update(book);
 
-        return now.atZone(TAIPEI_ZONE).format(ISO_FORMATTER);
+        return LocalDateTimeUtils.formatIso8601(now);
     }
 
 

@@ -4,14 +4,27 @@ import tw.edu.ntub.imd.birc.practice.exception.DateParseException;
 import tw.edu.ntub.imd.birc.practice.exception.NullParameterException;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Calendar;
 import java.util.Date;
 
 public class LocalDateTimeUtils {
+
+    public static final ZoneId TAIPEI_ZONE = ZoneId.of("Asia/Taipei");
+    private static final DateTimeFormatter ISO_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+
     private LocalDateTimeUtils() {
 
+    }
+
+    public static String formatIso8601(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+        return dateTime.atZone(TAIPEI_ZONE).format(ISO_FORMATTER);
     }
 
     public static LocalDateTimeWrapper createWrapper() {
