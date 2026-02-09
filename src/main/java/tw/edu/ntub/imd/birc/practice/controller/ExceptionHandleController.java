@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import tw.edu.ntub.birc.common.exception.ProjectException;
 import tw.edu.ntub.birc.common.exception.UnknownException;
+import tw.edu.ntub.imd.birc.practice.exception.NotFoundException;
 import tw.edu.ntub.birc.common.exception.date.ParseDateException;
 import tw.edu.ntub.birc.common.util.ClassUtils;
 import tw.edu.ntub.imd.birc.practice.exception.ConvertPropertyException;
@@ -40,9 +41,18 @@ import java.util.Set;
 @Log4j2
 @ControllerAdvice
 public class ExceptionHandleController {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<String> handleNotFoundException(NotFoundException e) {
+        return ResponseEntityBuilder.error(e)
+                .status(HttpStatus.NOT_FOUND)
+                .build();
+    }
+
     @ExceptionHandler(ProjectException.class)
     public ResponseEntity<String> handleProjectException(ProjectException e) {
-        return ResponseEntityBuilder.error(e).build();
+        return ResponseEntityBuilder.error(e)
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -71,15 +81,23 @@ public class ExceptionHandleController {
                     throw new UnknownException(e);
                 }
             }
-            return ResponseEntityBuilder.error(new InvalidRequestFormatException(message)).build();
+            return ResponseEntityBuilder.error(new InvalidRequestFormatException(message))
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
         } else if (e.getRootCause() instanceof ParseDateException) {
             ParseDateException rootCause = (ParseDateException) e.getRootCause();
-            return ResponseEntityBuilder.error(new InvalidFormDateFormatException(rootCause)).build();
+            return ResponseEntityBuilder.error(new InvalidFormDateFormatException(rootCause))
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
         } else if (e.getRootCause() instanceof NumberFormatException) {
             NumberFormatException rootCause = (NumberFormatException) e.getRootCause();
-            return ResponseEntityBuilder.error(new InvalidFormNumberFormatException(rootCause)).build();
+            return ResponseEntityBuilder.error(new InvalidFormNumberFormatException(rootCause))
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
         } else {
-            return ResponseEntityBuilder.error(new NullRequestBodyException(e)).build();
+            return ResponseEntityBuilder.error(new NullRequestBodyException(e))
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 
@@ -92,6 +110,7 @@ public class ExceptionHandleController {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException e) {
         return ResponseEntityBuilder.error()
+                .status(HttpStatus.FORBIDDEN)
                 .errorCode("User - AccessDenied")
                 .message("您並無此操作之權限，請嘗試重新登入")
                 .build();
@@ -99,7 +118,9 @@ public class ExceptionHandleController {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<String> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-        return ResponseEntityBuilder.error(new UploadFileTooLargeException(e)).build();
+        return ResponseEntityBuilder.error(new UploadFileTooLargeException(e))
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -111,28 +132,36 @@ public class ExceptionHandleController {
                 request.getRequestURL().toString(),
                 request.getMethod(),
                 e
-        )).build();
+        )).status(HttpStatus.METHOD_NOT_ALLOWED).build();
     }
 
     @ExceptionHandler(InvalidPropertyException.class)
     public ResponseEntity<String> handleInvalidPropertyException(InvalidPropertyException e) {
-        return ResponseEntityBuilder.error(new ConvertPropertyException(e)).build();
+        return ResponseEntityBuilder.error(new ConvertPropertyException(e))
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<String> handleConstraintViolationException(ConstraintViolationException e) {
         Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
         ConstraintViolation<?> constraintViolation = constraintViolations.stream().findAny().orElseThrow();
-        return ResponseEntityBuilder.error(new InvalidFormException(constraintViolation.getMessage())).build();
+        return ResponseEntityBuilder.error(new InvalidFormException(constraintViolation.getMessage()))
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<String> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        return ResponseEntityBuilder.error(new RequiredParameterException(e.getParameterName())).build();
+        return ResponseEntityBuilder.error(new RequiredParameterException(e.getParameterName()))
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleUnknownException(Exception e) {
-        return ResponseEntityBuilder.error(new UnknownException(e)).build();
+        return ResponseEntityBuilder.error(new UnknownException(e))
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .build();
     }
 }

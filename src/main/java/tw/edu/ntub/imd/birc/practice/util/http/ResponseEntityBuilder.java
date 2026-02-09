@@ -3,6 +3,7 @@ package tw.edu.ntub.imd.birc.practice.util.http;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import tw.edu.ntub.birc.common.exception.ProjectException;
 import tw.edu.ntub.imd.birc.practice.util.function.TripleConsumer;
@@ -31,7 +32,7 @@ import java.util.function.BiConsumer;
  */
 @Log4j2
 public class ResponseEntityBuilder {
-    private final ResponseEntity.BodyBuilder bodyBuilder = ResponseEntity.ok();
+    private ResponseEntity.BodyBuilder bodyBuilder = ResponseEntity.ok();
     private boolean success;
     private ProjectException ProjectException;
     private String message;
@@ -73,6 +74,11 @@ public class ResponseEntityBuilder {
 
     public ResponseEntityBuilder errorCode(String code) {
         this.errorCode = code;
+        return this;
+    }
+
+    public ResponseEntityBuilder status(HttpStatus httpStatus) {
+        this.bodyBuilder = ResponseEntity.status(httpStatus);
         return this;
     }
 
