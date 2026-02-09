@@ -15,6 +15,7 @@ import tw.edu.ntub.imd.birc.practice.service.dto.BookListBean;
 import tw.edu.ntub.imd.birc.practice.service.transformer.BookTransformer;
 import tw.edu.ntub.birc.common.util.CollectionUtils;
 
+import tw.edu.ntub.imd.birc.practice.util.IsbnUtils;
 import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,8 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     public BookBean save(BookBean bookBean) {
         validateCommonFields(bookBean);
 
+        bookBean.setIsbn(IsbnUtils.clean(bookBean.getIsbn()));
+
         if (!isValidIsbn13(bookBean.getIsbn())) {
             throw new IsbnInvalidException();
         }
@@ -65,7 +68,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
 
     @Override
     public Optional<BookBean> getByIsbn(String isbn) {
-        return bookDAO.findByIsbn(isbn).map(bookTransformer::transferToBean);
+        return bookDAO.findByIsbn(IsbnUtils.clean(isbn)).map(bookTransformer::transferToBean);
     }
 
     @Override
@@ -77,6 +80,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
 
     @Override
     public void update(String isbn, BookBean bookBean) {
+        isbn = IsbnUtils.clean(isbn);
         Book book = bookDAO.findByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
@@ -102,6 +106,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     
     @Override
     public void delete(String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         if (!bookDAO.existsByIsbn(isbn)) {
             throw new NotFoundException("找不到該 ISBN");
         }
@@ -110,6 +115,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
 
     @Override
     public String borrowBook(String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         Book book = bookDAO.findByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
@@ -134,6 +140,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
 
     @Override
     public String returnBook(String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         Book book = bookDAO.findByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 

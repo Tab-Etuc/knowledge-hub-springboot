@@ -16,6 +16,7 @@ import tw.edu.ntub.imd.birc.practice.util.http.ResponseEntityBuilder;
 import tw.edu.ntub.imd.birc.practice.util.json.array.ArrayData;
 import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
 
+import tw.edu.ntub.imd.birc.practice.util.IsbnUtils;
 import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
 
 import java.time.LocalDateTime;
@@ -74,6 +75,7 @@ public class BookController {
 
     @GetMapping("/{isbn}")
     public ResponseEntity<String> getBookDetail(@PathVariable String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         BookBean book = bookService.getByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
@@ -100,6 +102,7 @@ public class BookController {
     @PutMapping("/{isbn}")
     public ResponseEntity<String> updateBook(@PathVariable String isbn,
                                              @RequestBody BookBean bookBean) {
+        isbn = IsbnUtils.clean(isbn);
         bookService.update(isbn, bookBean);
         return ResponseEntityBuilder.success()
                 .message("更新成功")
@@ -108,6 +111,7 @@ public class BookController {
 
     @DeleteMapping("/{isbn}")
     public ResponseEntity<String> deleteBook(@PathVariable String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         bookService.delete(isbn);
         return ResponseEntityBuilder.success()
                 .message("刪除成功")
@@ -116,6 +120,7 @@ public class BookController {
 
     @PostMapping("/{isbn}/borrow")
     public ResponseEntity<String> borrowBook(@PathVariable String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         String borrowedAt = bookService.borrowBook(isbn);
         ObjectData data = new ObjectData().add("borrowedAt", borrowedAt);
         return ResponseEntityBuilder.success()
@@ -126,6 +131,7 @@ public class BookController {
 
     @PostMapping("/{isbn}/return")
     public ResponseEntity<String> returnBook(@PathVariable String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         String returnedAt = bookService.returnBook(isbn);
         ObjectData data = new ObjectData().add("returnedAt", returnedAt);
         return ResponseEntityBuilder.success()
@@ -136,6 +142,7 @@ public class BookController {
 
     @GetMapping("/{isbn}/records")
     public ResponseEntity<String> getBorrowRecords(@PathVariable String isbn) {
+        isbn = IsbnUtils.clean(isbn);
         bookService.getByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
