@@ -8,10 +8,11 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.dao.specification.BookSpecif
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.*;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.*;
-import tw.edu.ntub.imd.birc.practice.exception.form.MissingFieldException;
 import tw.edu.ntub.imd.birc.practice.service.BookService;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookListBean;
+import tw.edu.ntub.imd.birc.practice.service.strategy.BookStrategyFactory;
+import tw.edu.ntub.imd.birc.practice.service.strategy.BookTypeStrategy;
 import tw.edu.ntub.imd.birc.practice.service.transformer.BookTransformer;
 import tw.edu.ntub.birc.common.util.CollectionUtils;
 
@@ -28,23 +29,23 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     private final BookDAO bookDAO;
     private final BorrowRecordDAO borrowRecordDAO;
     private final BookTransformer bookTransformer;
+    private final BookStrategyFactory strategyFactory;
 
     public BookServiceImpl(BookDAO bookDAO,
                            BorrowRecordDAO borrowRecordDAO,
-                           BookTransformer bookTransformer) {
+                           BookTransformer bookTransformer,
+                           BookStrategyFactory strategyFactory) {
         super(bookDAO, bookTransformer);
         this.bookDAO = bookDAO;
         this.borrowRecordDAO = borrowRecordDAO;
         this.bookTransformer = bookTransformer;
+        this.strategyFactory = strategyFactory;
     }
 
     @Override
     public BookBean save(BookBean bookBean) {
-        validateCommonFields(bookBean);
-
         bookBean.setIsbn(IsbnUtils.clean(bookBean.getIsbn()));
-
-        if (!isValidIsbn13(bookBean.getIsbn())) {
+        if (!IsbnUtils.isValid(bookBean.getIsbn())) {
             throw new IsbnInvalidException();
         }
 
@@ -52,15 +53,16 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
             throw new IsbnDuplicateException();
         }
 
-        validateTypeSpecificFields(bookBean);
+        BookTypeStrategy strategy = strategyFactory.getStrategy(bookBean.getType());
+        strategy.validate(bookBean);
 
-        String classification = generateClassification(bookBean);
+        String classification = strategy.generateClassification(bookBean);
 
         Book book = bookTransformer.transferToEntity(bookBean);
         book.setClassification(classification);
         book.setSave(true);
 
-        createBookDetail(book, bookBean);
+        strategy.createDetail(book, bookBean);
 
         Book savedBook = bookDAO.save(book);
         return bookTransformer.transferToBean(savedBook);
@@ -94,11 +96,12 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
             book.setPublishedAt(bookBean.getPublishedAt());
         }
 
-        updateTypeSpecificFields(book, bookBean);
+        BookTypeStrategy strategy = strategyFactory.getStrategy(book.getType());
+        strategy.updateDetail(book, bookBean);
 
         BookBean fullBean = bookTransformer.transferToBean(book);
-        mergeUpdatedFields(fullBean, bookBean, book.getType());
-        book.setClassification(generateClassification(fullBean));
+        strategy.mergeUpdatedFields(fullBean, bookBean);
+        book.setClassification(strategy.generateClassification(fullBean));
 
         bookDAO.update(book);
     }
@@ -162,231 +165,5 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
         bookDAO.update(book);
 
         return LocalDateTimeUtils.formatIso8601(now);
-    }
-
-
-    private void validateCommonFields(BookBean bean) {
-        if (bean.getIsbn() == null || bean.getIsbn().isBlank()) {
-            throw new MissingFieldException("isbn");
-        }
-        if (bean.getTitle() == null || bean.getTitle().isBlank()) {
-            throw new MissingFieldException("title");
-        }
-        if (bean.getAuthor() == null || bean.getAuthor().isBlank()) {
-            throw new MissingFieldException("author");
-        }
-        if (bean.getType() == null) {
-            throw new MissingFieldException("type");
-        }
-        if (bean.getPublishedAt() == null) {
-            throw new MissingFieldException("publishedAt");
-        }
-    }
-
-    private void validateTypeSpecificFields(BookBean bean) {
-        switch (bean.getType()) {
-            case CHINESE:
-                if (bean.getChineseDdcCode() == null || bean.getChineseDdcCode().isBlank()) {
-                    throw new MissingFieldException("chineseDdcCode");
-                }
-                validateChineseDdcCode(bean.getChineseDdcCode());
-                break;
-            case WESTERN:
-                if (bean.getDeweyDecimalCode() == null || bean.getDeweyDecimalCode().isBlank()) {
-                    throw new MissingFieldException("deweyDecimalCode");
-                }
-                validateDeweyDecimalCode(bean.getDeweyDecimalCode());
-                break;
-            case ACADEMIC:
-                if (bean.getLcClassMark() == null || bean.getLcClassMark().isBlank()) {
-                    throw new MissingFieldException("lcClassMark");
-                }
-                validateLcClassMark(bean.getLcClassMark());
-                break;
-            case CHILDREN:
-                if (bean.getAgeLowerBound() == null) {
-                    throw new MissingFieldException("ageLowerBound");
-                }
-                if (bean.getAgeUpperBound() == null) {
-                    throw new MissingFieldException("ageUpperBound");
-                }
-                if (bean.getTheme() == null || bean.getTheme().isBlank()) {
-                    throw new MissingFieldException("theme");
-                }
-                validateChildrenAgeRange(bean.getAgeLowerBound(), bean.getAgeUpperBound());
-                break;
-        }
-    }
-
-    private void validateChineseDdcCode(String code) {
-        if (!code.matches("^[A-Z]\\d.*$")) {
-            throw new ChineseBookCodeInvalidException();
-        }
-    }
-
-    private void validateDeweyDecimalCode(String code) {
-        if (!code.matches("^\\d{3}(\\.\\d+)?$")) {
-            throw new WesternBookCodeInvalidException();
-        }
-    }
-
-    private void validateLcClassMark(String code) {
-        if (!code.matches("^[A-Z]{1,2}\\d.*$")) {
-            throw new AcademicBookCodeInvalidException();
-        }
-    }
-
-    private void validateChildrenAgeRange(Integer lower, Integer upper) {
-        if (lower <= 0 || lower >= 12 || upper <= 0 || upper >= 12) {
-            throw new ChildrenBookAgeRangeInvalidException();
-        }
-        if (lower >= upper) {
-            throw new ChildrenBookAgeRangeInvalidException();
-        }
-    }
-
-
-    private boolean isValidIsbn13(String isbn) {
-        if (isbn == null) return false;
-        String cleanIsbn = isbn.replaceAll("-", "").replaceAll(" ", "");
-        if (cleanIsbn.length() != 13 || !cleanIsbn.matches("\\d{13}")) return false;
-
-        int sum = 0;
-        for (int i = 0; i < 12; i++) {
-            int digit = Character.getNumericValue(cleanIsbn.charAt(i));
-            sum += (i % 2 == 0) ? digit : digit * 3;
-        }
-        int checkDigit = (10 - (sum % 10)) % 10;
-        return checkDigit == Character.getNumericValue(cleanIsbn.charAt(12));
-    }
-
-
-    private String generateClassification(BookBean bean) {
-        switch (bean.getType()) {
-            case CHINESE:
-                return bean.getChineseDdcCode();
-            case WESTERN:
-                return bean.getDeweyDecimalCode();
-            case ACADEMIC:
-                return bean.getLcClassMark();
-            case CHILDREN:
-                return "Age " + bean.getAgeLowerBound() + "–" + bean.getAgeUpperBound() + " / " + bean.getTheme();
-            default:
-                return "";
-        }
-    }
-
-
-    private void createBookDetail(Book book, BookBean bean) {
-        switch (bean.getType()) {
-            case CHINESE:
-                ChineseBookDetail chineseDetail = new ChineseBookDetail();
-                chineseDetail.setIsbn(book.getIsbn());
-                chineseDetail.setChineseDdcCode(bean.getChineseDdcCode());
-                book.setChineseBookDetail(chineseDetail);
-                break;
-            case WESTERN:
-                WesternBookDetail westernDetail = new WesternBookDetail();
-                westernDetail.setIsbn(book.getIsbn());
-                westernDetail.setDeweyDecimalCode(bean.getDeweyDecimalCode());
-                book.setWesternBookDetail(westernDetail);
-                break;
-            case ACADEMIC:
-                AcademicBookDetail academicDetail = new AcademicBookDetail();
-                academicDetail.setIsbn(book.getIsbn());
-                academicDetail.setLcClassMark(bean.getLcClassMark());
-                book.setAcademicBookDetail(academicDetail);
-                break;
-            case CHILDREN:
-                ChildrenBookDetail childrenDetail = new ChildrenBookDetail();
-                childrenDetail.setIsbn(book.getIsbn());
-                childrenDetail.setAgeLowerBound(bean.getAgeLowerBound());
-                childrenDetail.setAgeUpperBound(bean.getAgeUpperBound());
-                childrenDetail.setTheme(bean.getTheme());
-                book.setChildrenBookDetail(childrenDetail);
-                break;
-        }
-    }
-
-
-    private void updateTypeSpecificFields(Book book, BookBean bean) {
-        switch (book.getType()) {
-            case CHINESE:
-                if (bean.getChineseDdcCode() != null) {
-                    validateChineseDdcCode(bean.getChineseDdcCode());
-                    if (book.getChineseBookDetail() != null) {
-                        book.getChineseBookDetail().setChineseDdcCode(bean.getChineseDdcCode());
-                    }
-                }
-                break;
-            case WESTERN:
-                if (bean.getDeweyDecimalCode() != null) {
-                    validateDeweyDecimalCode(bean.getDeweyDecimalCode());
-                    if (book.getWesternBookDetail() != null) {
-                        book.getWesternBookDetail().setDeweyDecimalCode(bean.getDeweyDecimalCode());
-                    }
-                }
-                break;
-            case ACADEMIC:
-                if (bean.getLcClassMark() != null) {
-                    validateLcClassMark(bean.getLcClassMark());
-                    if (book.getAcademicBookDetail() != null) {
-                        book.getAcademicBookDetail().setLcClassMark(bean.getLcClassMark());
-                    }
-                }
-                break;
-            case CHILDREN:
-                ChildrenBookDetail detail = book.getChildrenBookDetail();
-                if (detail != null) {
-                    Integer newLower = bean.getAgeLowerBound() != null ? bean.getAgeLowerBound() : detail.getAgeLowerBound();
-                    Integer newUpper = bean.getAgeUpperBound() != null ? bean.getAgeUpperBound() : detail.getAgeUpperBound();
-
-                    if (bean.getAgeLowerBound() != null || bean.getAgeUpperBound() != null) {
-                        validateChildrenAgeRange(newLower, newUpper);
-                    }
-
-                    if (bean.getAgeLowerBound() != null) {
-                        detail.setAgeLowerBound(bean.getAgeLowerBound());
-                    }
-                    if (bean.getAgeUpperBound() != null) {
-                        detail.setAgeUpperBound(bean.getAgeUpperBound());
-                    }
-                    if (bean.getTheme() != null) {
-                        detail.setTheme(bean.getTheme());
-                    }
-                }
-                break;
-        }
-    }
-
-    private void mergeUpdatedFields(BookBean fullBean, BookBean updateBean, BookType type) {
-        switch (type) {
-            case CHINESE:
-                if (updateBean.getChineseDdcCode() != null) {
-                    fullBean.setChineseDdcCode(updateBean.getChineseDdcCode());
-                }
-                break;
-            case WESTERN:
-                if (updateBean.getDeweyDecimalCode() != null) {
-                    fullBean.setDeweyDecimalCode(updateBean.getDeweyDecimalCode());
-                }
-                break;
-            case ACADEMIC:
-                if (updateBean.getLcClassMark() != null) {
-                    fullBean.setLcClassMark(updateBean.getLcClassMark());
-                }
-                break;
-            case CHILDREN:
-                if (updateBean.getAgeLowerBound() != null) {
-                    fullBean.setAgeLowerBound(updateBean.getAgeLowerBound());
-                }
-                if (updateBean.getAgeUpperBound() != null) {
-                    fullBean.setAgeUpperBound(updateBean.getAgeUpperBound());
-                }
-                if (updateBean.getTheme() != null) {
-                    fullBean.setTheme(updateBean.getTheme());
-                }
-                break;
-        }
     }
 }

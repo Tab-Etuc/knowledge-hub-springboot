@@ -4,6 +4,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.NotFoundException;
@@ -21,6 +22,7 @@ import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/books")
@@ -35,7 +37,8 @@ public class BookController {
     }
 
     @PostMapping("")
-    public ResponseEntity<String> createBook(@RequestBody BookBean bookBean) {
+    public ResponseEntity<String> createBook(
+            @Validated(BookBean.Create.class) @RequestBody BookBean bookBean) {
         bookService.save(bookBean);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -163,12 +166,9 @@ public class BookController {
 
 
     private void addDateTimeField(ObjectData data, String key, LocalDateTime dateTime) {
-        String formatted = LocalDateTimeUtils.formatIso8601(dateTime);
-        if (formatted != null) {
-            data.add(key, formatted);
-        } else {
-            data.addNull(key);
-        }
+        data.add(key, Optional.ofNullable(dateTime)
+                .map(LocalDateTimeUtils::formatIso8601)
+                .orElse(null));
     }
 
     private void addTypeSpecificFields(ObjectData data, BookBean book) {
