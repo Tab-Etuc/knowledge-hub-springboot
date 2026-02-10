@@ -30,7 +30,7 @@ public class BorrowingServiceImpl implements BorrowingService {
     @Override
     public String borrowBook(String isbn) {
         isbn = isbnService.clean(isbn);
-        Book book = bookDAO.findByIsbn(isbn)
+        Book book = bookDAO.findById(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
         if (book.getBorrowedAt() != null) {
@@ -55,7 +55,7 @@ public class BorrowingServiceImpl implements BorrowingService {
     @Override
     public String returnBook(String isbn) {
         isbn = isbnService.clean(isbn);
-        Book book = bookDAO.findByIsbn(isbn)
+        Book book = bookDAO.findById(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
         if (book.getBorrowedAt() == null) {

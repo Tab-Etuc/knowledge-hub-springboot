@@ -62,7 +62,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
 
     @Override
     public Optional<BookBean> getByIsbn(String isbn) {
-        return bookDAO.findByIsbn(isbnService.clean(isbn)).map(bookTransformer::transferToBean);
+        return bookDAO.findById(isbnService.clean(isbn)).map(bookTransformer::transferToBean);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     @Override
     public void update(String isbn, BookBean bookBean) {
         isbn = isbnService.clean(isbn);
-        Book book = bookDAO.findByIsbn(isbn)
+        Book book = bookDAO.findById(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
         if (bookBean.getTitle() != null) {
@@ -101,7 +101,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     @Override
     public void delete(String isbn) {
         isbn = isbnService.clean(isbn);
-        if (!bookDAO.existsByIsbn(isbn)) {
+        if (!bookDAO.existsById(isbn)) {
             throw new NotFoundException("找不到該 ISBN");
         }
         bookDAO.deleteById(isbn);

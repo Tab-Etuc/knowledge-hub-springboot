@@ -30,7 +30,7 @@ public class IsbnServiceImpl implements IsbnService {
 
     @Override
     public void validateNotDuplicate(String isbn) {
-        if (bookDAO.existsByIsbn(isbn)) {
+        if (bookDAO.existsById(isbn)) {
             throw new IsbnDuplicateException();
         }
     }
