@@ -3,11 +3,18 @@ package tw.edu.ntub.imd.birc.practice.service.transformer;
 import org.springframework.stereotype.Component;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
+import tw.edu.ntub.imd.birc.practice.service.strategy.BookStrategyFactory;
 
 import javax.annotation.Nonnull;
 
 @Component
 public class BookTransformer implements BeanEntityTransformer<BookBean, Book> {
+
+    private final BookStrategyFactory strategyFactory;
+
+    public BookTransformer(BookStrategyFactory strategyFactory) {
+        this.strategyFactory = strategyFactory;
+    }
 
     @Nonnull
     @Override
@@ -38,30 +45,7 @@ public class BookTransformer implements BeanEntityTransformer<BookBean, Book> {
         bean.setClassification(book.getClassification());
 
         if (book.getType() != null) {
-            switch (book.getType()) {
-                case CHINESE:
-                    if (book.getChineseBookDetail() != null) {
-                        bean.setChineseDdcCode(book.getChineseBookDetail().getChineseDdcCode());
-                    }
-                    break;
-                case WESTERN:
-                    if (book.getWesternBookDetail() != null) {
-                        bean.setDeweyDecimalCode(book.getWesternBookDetail().getDeweyDecimalCode());
-                    }
-                    break;
-                case ACADEMIC:
-                    if (book.getAcademicBookDetail() != null) {
-                        bean.setLcClassMark(book.getAcademicBookDetail().getLcClassMark());
-                    }
-                    break;
-                case CHILDREN:
-                    if (book.getChildrenBookDetail() != null) {
-                        bean.setAgeLowerBound(book.getChildrenBookDetail().getAgeLowerBound());
-                        bean.setAgeUpperBound(book.getChildrenBookDetail().getAgeUpperBound());
-                        bean.setTheme(book.getChildrenBookDetail().getTheme());
-                    }
-                    break;
-            }
+            strategyFactory.getStrategy(book.getType()).populateBean(book, bean);
         }
 
         return bean;

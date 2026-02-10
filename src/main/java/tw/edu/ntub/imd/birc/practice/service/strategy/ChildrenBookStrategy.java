@@ -6,6 +6,7 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.ChildrenBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.ChildrenBookAgeRangeInvalidException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
+import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
 
 @Component
 public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
@@ -67,6 +68,22 @@ public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
         if (updateBean.getTheme() != null) {
             fullBean.setTheme(updateBean.getTheme());
         }
+    }
+
+    @Override
+    public void populateBean(Book book, BookBean bean) {
+        if (book.getChildrenBookDetail() != null) {
+            bean.setAgeLowerBound(book.getChildrenBookDetail().getAgeLowerBound());
+            bean.setAgeUpperBound(book.getChildrenBookDetail().getAgeUpperBound());
+            bean.setTheme(book.getChildrenBookDetail().getTheme());
+        }
+    }
+
+    @Override
+    public void addResponseFields(BookBean bean, ObjectData data) {
+        data.add("ageLowerBound", bean.getAgeLowerBound());
+        data.add("ageUpperBound", bean.getAgeUpperBound());
+        data.add("theme", bean.getTheme());
     }
 
     @Override

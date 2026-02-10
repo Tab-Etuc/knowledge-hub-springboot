@@ -6,6 +6,7 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.AcademicBookCodeInvalidException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
+import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
 
 @Component
 public class AcademicBookStrategy extends AbstractBookTypeStrategy {
@@ -45,6 +46,18 @@ public class AcademicBookStrategy extends AbstractBookTypeStrategy {
         if (updateBean.getLcClassMark() != null) {
             fullBean.setLcClassMark(updateBean.getLcClassMark());
         }
+    }
+
+    @Override
+    public void populateBean(Book book, BookBean bean) {
+        if (book.getAcademicBookDetail() != null) {
+            bean.setLcClassMark(book.getAcademicBookDetail().getLcClassMark());
+        }
+    }
+
+    @Override
+    public void addResponseFields(BookBean bean, ObjectData data) {
+        data.add("lcClassMark", bean.getLcClassMark());
     }
 
     @Override

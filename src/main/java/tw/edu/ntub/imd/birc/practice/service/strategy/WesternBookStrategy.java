@@ -6,6 +6,7 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.WesternBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.WesternBookCodeInvalidException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
+import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
 
 @Component
 public class WesternBookStrategy extends AbstractBookTypeStrategy {
@@ -45,6 +46,18 @@ public class WesternBookStrategy extends AbstractBookTypeStrategy {
         if (updateBean.getDeweyDecimalCode() != null) {
             fullBean.setDeweyDecimalCode(updateBean.getDeweyDecimalCode());
         }
+    }
+
+    @Override
+    public void populateBean(Book book, BookBean bean) {
+        if (book.getWesternBookDetail() != null) {
+            bean.setDeweyDecimalCode(book.getWesternBookDetail().getDeweyDecimalCode());
+        }
+    }
+
+    @Override
+    public void addResponseFields(BookBean bean, ObjectData data) {
+        data.add("deweyDecimalCode", bean.getDeweyDecimalCode());
     }
 
     @Override

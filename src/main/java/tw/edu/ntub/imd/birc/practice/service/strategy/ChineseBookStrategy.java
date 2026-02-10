@@ -6,6 +6,7 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.ChineseBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.ChineseBookCodeInvalidException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
+import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
 
 @Component
 public class ChineseBookStrategy extends AbstractBookTypeStrategy {
@@ -45,6 +46,18 @@ public class ChineseBookStrategy extends AbstractBookTypeStrategy {
         if (updateBean.getChineseDdcCode() != null) {
             fullBean.setChineseDdcCode(updateBean.getChineseDdcCode());
         }
+    }
+
+    @Override
+    public void populateBean(Book book, BookBean bean) {
+        if (book.getChineseBookDetail() != null) {
+            bean.setChineseDdcCode(book.getChineseBookDetail().getChineseDdcCode());
+        }
+    }
+
+    @Override
+    public void addResponseFields(BookBean bean, ObjectData data) {
+        data.add("chineseDdcCode", bean.getChineseDdcCode());
     }
 
     @Override

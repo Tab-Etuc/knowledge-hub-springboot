@@ -18,6 +18,7 @@ import tw.edu.ntub.imd.birc.practice.service.dto.BorrowRecordBean;
 import tw.edu.ntub.imd.birc.practice.util.http.ResponseEntityBuilder;
 import tw.edu.ntub.imd.birc.practice.util.json.array.ArrayData;
 import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
+import tw.edu.ntub.imd.birc.practice.service.strategy.BookStrategyFactory;
 
 import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
 
@@ -33,15 +34,18 @@ public class BookController {
     private final BorrowRecordService borrowRecordService;
     private final BorrowingService borrowingService;
     private final IsbnService isbnService;
+    private final BookStrategyFactory strategyFactory;
 
     public BookController(BookService bookService,
                           BorrowRecordService borrowRecordService,
                           BorrowingService borrowingService,
-                          IsbnService isbnService) {
+                          IsbnService isbnService,
+                          BookStrategyFactory strategyFactory) {
         this.bookService = bookService;
         this.borrowRecordService = borrowRecordService;
         this.borrowingService = borrowingService;
         this.isbnService = isbnService;
+        this.strategyFactory = strategyFactory;
     }
 
     @PostMapping("")
@@ -102,7 +106,7 @@ public class BookController {
 
         data.add("classification", book.getClassification());
 
-        addTypeSpecificFields(data, book);
+        strategyFactory.getStrategy(book.getType()).addResponseFields(book, data);
 
         return ResponseEntityBuilder.success()
                 .message("查詢成功")
@@ -177,24 +181,5 @@ public class BookController {
         data.add(key, Optional.ofNullable(dateTime)
                 .map(LocalDateTimeUtils::formatIso8601)
                 .orElse(null));
-    }
-
-    private void addTypeSpecificFields(ObjectData data, BookBean book) {
-        switch (book.getType()) {
-            case CHINESE:
-                data.add("chineseDdcCode", book.getChineseDdcCode());
-                break;
-            case WESTERN:
-                data.add("deweyDecimalCode", book.getDeweyDecimalCode());
-                break;
-            case ACADEMIC:
-                data.add("lcClassMark", book.getLcClassMark());
-                break;
-            case CHILDREN:
-                data.add("ageLowerBound", book.getAgeLowerBound());
-                data.add("ageUpperBound", book.getAgeUpperBound());
-                data.add("theme", book.getTheme());
-                break;
-        }
     }
 }
