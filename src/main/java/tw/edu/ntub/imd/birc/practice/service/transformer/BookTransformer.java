@@ -34,6 +34,18 @@ public class BookTransformer implements BeanEntityTransformer<BookBean, Book> {
     @Nonnull
     @Override
     public BookBean transferToBean(@Nonnull Book book) {
+        BookBean bean = transferToListBean(book);
+
+        if (book.getType() != null) {
+            strategyFactory.getStrategy(book.getType()).populateBean(book, bean);
+        }
+
+        return bean;
+    }
+
+    // 列表查詢不需要細節
+    @Nonnull
+    public BookBean transferToListBean(@Nonnull Book book) {
         BookBean bean = new BookBean();
         bean.setIsbn(book.getIsbn());
         bean.setTitle(book.getTitle());
@@ -43,11 +55,6 @@ public class BookTransformer implements BeanEntityTransformer<BookBean, Book> {
         bean.setBorrowedAt(book.getBorrowedAt());
         bean.setReturnedAt(book.getReturnedAt());
         bean.setClassification(book.getClassification());
-
-        if (book.getType() != null) {
-            strategyFactory.getStrategy(book.getType()).populateBean(book, bean);
-        }
-
         return bean;
     }
 }

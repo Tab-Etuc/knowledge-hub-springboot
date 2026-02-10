@@ -68,7 +68,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     @Override
     public BookListBean searchBooks(String keyword, BookType type, Boolean available, Pageable pageable) {
         Page<Book> page = bookDAO.findAll(BookSpecification.withFilters(keyword, type, available), pageable);
-        List<BookBean> books = CollectionUtils.map(page.getContent(), bookTransformer::transferToBean);
+        List<BookBean> books = CollectionUtils.map(page.getContent(), bookTransformer::transferToListBean);
         return new BookListBean(page.getTotalElements(), books);
     }
 
