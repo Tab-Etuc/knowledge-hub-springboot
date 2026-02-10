@@ -3,6 +3,11 @@ package tw.edu.ntub.imd.birc.practice.exception;
 import tw.edu.ntub.birc.common.exception.ProjectException;
 
 public class NotFoundException extends ProjectException {
+
+    public static NotFoundException byIsbn() {
+        return new NotFoundException("找不到該 ISBN");
+    }
+
     public NotFoundException() {
         super("查無資料");
     }

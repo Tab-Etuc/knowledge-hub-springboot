@@ -76,17 +76,11 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     public void update(String isbn, BookBean bookBean) {
         isbn = isbnService.clean(isbn);
         Book book = bookDAO.findById(isbn)
-                .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
+                .orElseThrow(NotFoundException::byIsbn);
 
-        if (bookBean.getTitle() != null) {
-            book.setTitle(bookBean.getTitle());
-        }
-        if (bookBean.getAuthor() != null) {
-            book.setAuthor(bookBean.getAuthor());
-        }
-        if (bookBean.getPublishedAt() != null) {
-            book.setPublishedAt(bookBean.getPublishedAt());
-        }
+        updateIfNotNull(bookBean.getTitle(), book::setTitle);
+        updateIfNotNull(bookBean.getAuthor(), book::setAuthor);
+        updateIfNotNull(bookBean.getPublishedAt(), book::setPublishedAt);
 
         BookTypeStrategy strategy = strategyFactory.getStrategy(book.getType());
         strategy.updateDetail(book, bookBean);
@@ -102,7 +96,13 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     public void delete(String isbn) {
         isbn = isbnService.clean(isbn);
         Book book = bookDAO.findById(isbn)
-                .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
+                .orElseThrow(NotFoundException::byIsbn);
         bookDAO.delete(book);
+    }
+
+    private <T> void updateIfNotNull(T value, java.util.function.Consumer<T> setter) {
+        if (value != null) {
+            setter.accept(value);
+        }
     }
 }

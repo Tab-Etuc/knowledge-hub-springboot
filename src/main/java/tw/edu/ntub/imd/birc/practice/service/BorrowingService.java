@@ -1,8 +1,10 @@
 package tw.edu.ntub.imd.birc.practice.service;
 
+import java.time.LocalDateTime;
+
 public interface BorrowingService {
 
-    String borrowBook(String isbn);
+    LocalDateTime borrowBook(String isbn);
 
-    String returnBook(String isbn);
+    LocalDateTime returnBook(String isbn);
 }

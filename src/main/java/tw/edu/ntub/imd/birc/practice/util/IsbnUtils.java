@@ -7,7 +7,7 @@ public class IsbnUtils {
 
     public static String clean(String isbn) {
         if (isbn == null) return null;
-        return isbn.replaceAll("-", "").replaceAll(" ", "");
+        return isbn.replaceAll("[\\s-]", "");
     }
 
     public static boolean isValid(String isbn) {

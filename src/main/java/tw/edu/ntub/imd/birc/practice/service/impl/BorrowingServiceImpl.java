@@ -28,10 +28,10 @@ public class BorrowingServiceImpl implements BorrowingService {
     }
 
     @Override
-    public String borrowBook(String isbn) {
+    public LocalDateTime borrowBook(String isbn) {
         isbn = isbnService.clean(isbn);
         Book book = bookDAO.findById(isbn)
-                .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
+                .orElseThrow(NotFoundException::byIsbn);
 
         if (book.getBorrowedAt() != null) {
             throw new BookAlreadyBorrowedException();
@@ -49,14 +49,14 @@ public class BorrowingServiceImpl implements BorrowingService {
 
         bookDAO.update(book);
 
-        return LocalDateTimeUtils.formatIso8601(now);
+        return now;
     }
 
     @Override
-    public String returnBook(String isbn) {
+    public LocalDateTime returnBook(String isbn) {
         isbn = isbnService.clean(isbn);
         Book book = bookDAO.findById(isbn)
-                .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
+                .orElseThrow(NotFoundException::byIsbn);
 
         if (book.getBorrowedAt() == null) {
             throw new BookNotBorrowedException();
@@ -75,6 +75,6 @@ public class BorrowingServiceImpl implements BorrowingService {
         book.setReturnedAt(now);
         bookDAO.update(book);
 
-        return LocalDateTimeUtils.formatIso8601(now);
+        return now;
     }
 }
