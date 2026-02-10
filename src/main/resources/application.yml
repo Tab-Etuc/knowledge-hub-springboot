@@ -3,7 +3,7 @@ springdoc:
     path: /api
 spring:
   application:
-    name: practice
+    name: knowledgehub
   main:
     banner-mode: off
     allow-bean-definition-overriding: true
@@ -16,9 +16,9 @@ spring:
       max-request-size: 250MB
   datasource:
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    url: ${practice.database.url}
-    username: ${practice.database.account}
-    password: ${practice.database.password}
+    url: ${knowledgehub.database.url}
+    username: ${knowledgehub.database.account}
+    password: ${knowledgehub.database.password}
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect

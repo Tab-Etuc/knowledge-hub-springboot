@@ -99,8 +99,8 @@ repositories {
 
 dependencies {
     implementation 'tw.edu.ntub.birc:common:1.1.0'
-    implementation project('modules:practice-config')
-    implementation project('modules:practice-database-config')
+    implementation project('modules:knowledgehub-config')
+    implementation project('modules:knowledgehub-database-config')
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'org.yaml:snakeyaml:1.26'
     implementation 'org.apache.commons:commons-text:1.8'
@@ -132,4 +132,4 @@ dependencies {
 
 test {
     useJUnitPlatform()
-}
+} 

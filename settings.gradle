@@ -1,4 +1,4 @@
-rootProject.name = 'practice'
-include 'modules:practice-config'
-include 'modules:practice-database-config'
+rootProject.name = 'knowledgehub'
+include 'modules:knowledgehub-config'
+include 'modules:knowledgehub-database-config'
 

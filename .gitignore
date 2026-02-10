@@ -264,8 +264,8 @@ HELP.md
 
 application-local.*
 /src/main/resources/openapi.yaml
-practice-backend/modules/practice-config/.gradle
-practice-backend/modules/practice-database-config/.gradle
-practice-backend/modules/practice-database-config/src/generated/
-modules/practice-database-config/src/generated
+knowledgehub-backend/modules/knowledgehub-config/.gradle
+knowledgehub-backend/modules/knowledgehub-database-config/.gradle
+knowledgehub-backend/modules/knowledgehub-database-config/src/generated/
+modules/knowledgehub-database-config/src/generated
 
