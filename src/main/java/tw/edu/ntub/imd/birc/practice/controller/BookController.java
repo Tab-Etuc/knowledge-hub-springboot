@@ -12,7 +12,6 @@ import tw.edu.ntub.imd.birc.practice.controller.assembler.BookResponseAssembler;
 import tw.edu.ntub.imd.birc.practice.service.BookService;
 import tw.edu.ntub.imd.birc.practice.service.BorrowRecordService;
 import tw.edu.ntub.imd.birc.practice.service.BorrowingService;
-import tw.edu.ntub.imd.birc.practice.service.IsbnService;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookListBean;
 import tw.edu.ntub.imd.birc.practice.service.dto.BorrowRecordBean;
@@ -28,18 +27,15 @@ public class BookController {
     private final BookService bookService;
     private final BorrowRecordService borrowRecordService;
     private final BorrowingService borrowingService;
-    private final IsbnService isbnService;
     private final BookResponseAssembler bookResponseAssembler;
 
     public BookController(BookService bookService,
                           BorrowRecordService borrowRecordService,
                           BorrowingService borrowingService,
-                          IsbnService isbnService,
                           BookResponseAssembler bookResponseAssembler) {
         this.bookService = bookService;
         this.borrowRecordService = borrowRecordService;
         this.borrowingService = borrowingService;
-        this.isbnService = isbnService;
         this.bookResponseAssembler = bookResponseAssembler;
     }
 
@@ -71,7 +67,6 @@ public class BookController {
 
     @GetMapping("/{isbn}")
     public ResponseEntity<String> getBookDetail(@PathVariable String isbn) {
-        isbn = isbnService.clean(isbn);
         BookBean book = bookService.getByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
@@ -84,7 +79,6 @@ public class BookController {
     @PutMapping("/{isbn}")
     public ResponseEntity<String> updateBook(@PathVariable String isbn,
                                              @RequestBody BookBean bookBean) {
-        isbn = isbnService.clean(isbn);
         bookService.update(isbn, bookBean);
         return ResponseEntityBuilder.success()
                 .message("更新成功")
@@ -93,7 +87,6 @@ public class BookController {
 
     @DeleteMapping("/{isbn}")
     public ResponseEntity<String> deleteBook(@PathVariable String isbn) {
-        isbn = isbnService.clean(isbn);
         bookService.delete(isbn);
         return ResponseEntityBuilder.success()
                 .message("刪除成功")
@@ -102,7 +95,6 @@ public class BookController {
 
     @PostMapping("/{isbn}/borrow")
     public ResponseEntity<String> borrowBook(@PathVariable String isbn) {
-        isbn = isbnService.clean(isbn);
         String borrowedAt = borrowingService.borrowBook(isbn);
         ObjectData data = new ObjectData().add("borrowedAt", borrowedAt);
         return ResponseEntityBuilder.success()
@@ -113,7 +105,6 @@ public class BookController {
 
     @PostMapping("/{isbn}/return")
     public ResponseEntity<String> returnBook(@PathVariable String isbn) {
-        isbn = isbnService.clean(isbn);
         String returnedAt = borrowingService.returnBook(isbn);
         ObjectData data = new ObjectData().add("returnedAt", returnedAt);
         return ResponseEntityBuilder.success()
@@ -124,7 +115,6 @@ public class BookController {
 
     @GetMapping("/{isbn}/records")
     public ResponseEntity<String> getBorrowRecords(@PathVariable String isbn) {
-        isbn = isbnService.clean(isbn);
         bookService.getByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 

@@ -9,6 +9,7 @@ import tw.edu.ntub.imd.birc.practice.exception.BookAlreadyBorrowedException;
 import tw.edu.ntub.imd.birc.practice.exception.BookNotBorrowedException;
 import tw.edu.ntub.imd.birc.practice.exception.NotFoundException;
 import tw.edu.ntub.imd.birc.practice.service.BorrowingService;
+import tw.edu.ntub.imd.birc.practice.service.IsbnService;
 import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
 
 import java.time.LocalDateTime;
@@ -18,14 +19,17 @@ public class BorrowingServiceImpl implements BorrowingService {
 
     private final BookDAO bookDAO;
     private final BorrowRecordDAO borrowRecordDAO;
+    private final IsbnService isbnService;
 
-    public BorrowingServiceImpl(BookDAO bookDAO, BorrowRecordDAO borrowRecordDAO) {
+    public BorrowingServiceImpl(BookDAO bookDAO, BorrowRecordDAO borrowRecordDAO, IsbnService isbnService) {
         this.bookDAO = bookDAO;
         this.borrowRecordDAO = borrowRecordDAO;
+        this.isbnService = isbnService;
     }
 
     @Override
     public String borrowBook(String isbn) {
+        isbn = isbnService.clean(isbn);
         Book book = bookDAO.findByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
@@ -50,6 +54,7 @@ public class BorrowingServiceImpl implements BorrowingService {
 
     @Override
     public String returnBook(String isbn) {
+        isbn = isbnService.clean(isbn);
         Book book = bookDAO.findByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 

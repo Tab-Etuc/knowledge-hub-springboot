@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.dao.BorrowRecordDAO;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.BorrowRecord;
 import tw.edu.ntub.imd.birc.practice.service.BorrowRecordService;
+import tw.edu.ntub.imd.birc.practice.service.IsbnService;
 import tw.edu.ntub.imd.birc.practice.service.dto.BorrowRecordBean;
 import tw.edu.ntub.imd.birc.practice.service.transformer.BorrowRecordTransformer;
 import tw.edu.ntub.birc.common.util.CollectionUtils;
@@ -15,12 +16,15 @@ public class BorrowRecordServiceImpl extends BaseServiceImpl<BorrowRecordBean, B
 
     private final BorrowRecordDAO borrowRecordDAO;
     private final BorrowRecordTransformer borrowRecordTransformer;
+    private final IsbnService isbnService;
 
     public BorrowRecordServiceImpl(BorrowRecordDAO borrowRecordDAO,
-                                   BorrowRecordTransformer borrowRecordTransformer) {
+                                   BorrowRecordTransformer borrowRecordTransformer,
+                                   IsbnService isbnService) {
         super(borrowRecordDAO, borrowRecordTransformer);
         this.borrowRecordDAO = borrowRecordDAO;
         this.borrowRecordTransformer = borrowRecordTransformer;
+        this.isbnService = isbnService;
     }
 
     @Override
@@ -33,6 +37,7 @@ public class BorrowRecordServiceImpl extends BaseServiceImpl<BorrowRecordBean, B
 
     @Override
     public List<BorrowRecordBean> getRecordsByIsbn(String isbn) {
+        isbn = isbnService.clean(isbn);
         List<BorrowRecord> records = borrowRecordDAO.findByIsbnOrderByBorrowedAtDesc(isbn);
         return CollectionUtils.map(records, borrowRecordTransformer::transferToBean);
     }
