@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public interface BookService extends BaseService<BookBean, String> {
 
-
     @Override
     BookBean save(BookBean bookBean);
 
@@ -22,8 +21,4 @@ public interface BookService extends BaseService<BookBean, String> {
 
     @Override
     void delete(String isbn);
-
-    String borrowBook(String isbn);
-
-    String returnBook(String isbn);
 }

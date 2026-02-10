@@ -5,20 +5,17 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.ChineseBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.ChineseBookCodeInvalidException;
-import tw.edu.ntub.imd.birc.practice.exception.form.MissingFieldException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 
 @Component
-public class ChineseBookStrategy implements BookTypeStrategy {
+public class ChineseBookStrategy extends AbstractBookTypeStrategy {
+
+    private static final String CHINESE_DDC_PATTERN = "^[A-Z]\\d.*$";
 
     @Override
     public void validate(BookBean bean) {
-        if (bean.getChineseDdcCode() == null || bean.getChineseDdcCode().isBlank()) {
-            throw new MissingFieldException("chineseDdcCode");
-        }
-        if (!bean.getChineseDdcCode().matches("^[A-Z]\\d.*$")) {
-            throw new ChineseBookCodeInvalidException();
-        }
+        validateRequired(bean.getChineseDdcCode(), "chineseDdcCode");
+        validatePattern(bean.getChineseDdcCode(), CHINESE_DDC_PATTERN, new ChineseBookCodeInvalidException());
     }
 
     @Override
@@ -37,12 +34,9 @@ public class ChineseBookStrategy implements BookTypeStrategy {
     @Override
     public void updateDetail(Book book, BookBean bean) {
         if (bean.getChineseDdcCode() != null) {
-            if (!bean.getChineseDdcCode().matches("^[A-Z]\\d.*$")) {
-                throw new ChineseBookCodeInvalidException();
-            }
-            if (book.getChineseBookDetail() != null) {
-                book.getChineseBookDetail().setChineseDdcCode(bean.getChineseDdcCode());
-            }
+            validatePattern(bean.getChineseDdcCode(), CHINESE_DDC_PATTERN, new ChineseBookCodeInvalidException());
+            safeUpdateDetail(book, Book::getChineseBookDetail,
+                    detail -> detail.setChineseDdcCode(bean.getChineseDdcCode()));
         }
     }
 

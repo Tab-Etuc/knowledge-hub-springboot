@@ -5,20 +5,17 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.WesternBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.WesternBookCodeInvalidException;
-import tw.edu.ntub.imd.birc.practice.exception.form.MissingFieldException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 
 @Component
-public class WesternBookStrategy implements BookTypeStrategy {
+public class WesternBookStrategy extends AbstractBookTypeStrategy {
+
+    private static final String DEWEY_DECIMAL_PATTERN = "^\\d{3}(\\.\\d+)?$";
 
     @Override
     public void validate(BookBean bean) {
-        if (bean.getDeweyDecimalCode() == null || bean.getDeweyDecimalCode().isBlank()) {
-            throw new MissingFieldException("deweyDecimalCode");
-        }
-        if (!bean.getDeweyDecimalCode().matches("^\\d{3}(\\.\\d+)?$")) {
-            throw new WesternBookCodeInvalidException();
-        }
+        validateRequired(bean.getDeweyDecimalCode(), "deweyDecimalCode");
+        validatePattern(bean.getDeweyDecimalCode(), DEWEY_DECIMAL_PATTERN, new WesternBookCodeInvalidException());
     }
 
     @Override
@@ -37,12 +34,9 @@ public class WesternBookStrategy implements BookTypeStrategy {
     @Override
     public void updateDetail(Book book, BookBean bean) {
         if (bean.getDeweyDecimalCode() != null) {
-            if (!bean.getDeweyDecimalCode().matches("^\\d{3}(\\.\\d+)?$")) {
-                throw new WesternBookCodeInvalidException();
-            }
-            if (book.getWesternBookDetail() != null) {
-                book.getWesternBookDetail().setDeweyDecimalCode(bean.getDeweyDecimalCode());
-            }
+            validatePattern(bean.getDeweyDecimalCode(), DEWEY_DECIMAL_PATTERN, new WesternBookCodeInvalidException());
+            safeUpdateDetail(book, Book::getWesternBookDetail,
+                    detail -> detail.setDeweyDecimalCode(bean.getDeweyDecimalCode()));
         }
     }
 

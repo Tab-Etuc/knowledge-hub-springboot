@@ -5,23 +5,16 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.ChildrenBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.ChildrenBookAgeRangeInvalidException;
-import tw.edu.ntub.imd.birc.practice.exception.form.MissingFieldException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 
 @Component
-public class ChildrenBookStrategy implements BookTypeStrategy {
+public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
 
     @Override
     public void validate(BookBean bean) {
-        if (bean.getAgeLowerBound() == null) {
-            throw new MissingFieldException("ageLowerBound");
-        }
-        if (bean.getAgeUpperBound() == null) {
-            throw new MissingFieldException("ageUpperBound");
-        }
-        if (bean.getTheme() == null || bean.getTheme().isBlank()) {
-            throw new MissingFieldException("theme");
-        }
+        validateRequired(bean.getAgeLowerBound(), "ageLowerBound");
+        validateRequired(bean.getAgeUpperBound(), "ageUpperBound");
+        validateRequired(bean.getTheme(), "theme");
         validateAgeRange(bean.getAgeLowerBound(), bean.getAgeUpperBound());
     }
 

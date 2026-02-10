@@ -5,20 +5,17 @@ import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.AcademicBookDetail;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.AcademicBookCodeInvalidException;
-import tw.edu.ntub.imd.birc.practice.exception.form.MissingFieldException;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 
 @Component
-public class AcademicBookStrategy implements BookTypeStrategy {
+public class AcademicBookStrategy extends AbstractBookTypeStrategy {
+
+    private static final String LC_CLASS_MARK_PATTERN = "^[A-Z]{1,2}\\d.*$";
 
     @Override
     public void validate(BookBean bean) {
-        if (bean.getLcClassMark() == null || bean.getLcClassMark().isBlank()) {
-            throw new MissingFieldException("lcClassMark");
-        }
-        if (!bean.getLcClassMark().matches("^[A-Z]{1,2}\\d.*$")) {
-            throw new AcademicBookCodeInvalidException();
-        }
+        validateRequired(bean.getLcClassMark(), "lcClassMark");
+        validatePattern(bean.getLcClassMark(), LC_CLASS_MARK_PATTERN, new AcademicBookCodeInvalidException());
     }
 
     @Override
@@ -37,12 +34,9 @@ public class AcademicBookStrategy implements BookTypeStrategy {
     @Override
     public void updateDetail(Book book, BookBean bean) {
         if (bean.getLcClassMark() != null) {
-            if (!bean.getLcClassMark().matches("^[A-Z]{1,2}\\d.*$")) {
-                throw new AcademicBookCodeInvalidException();
-            }
-            if (book.getAcademicBookDetail() != null) {
-                book.getAcademicBookDetail().setLcClassMark(bean.getLcClassMark());
-            }
+            validatePattern(bean.getLcClassMark(), LC_CLASS_MARK_PATTERN, new AcademicBookCodeInvalidException());
+            safeUpdateDetail(book, Book::getAcademicBookDetail,
+                    detail -> detail.setLcClassMark(bean.getLcClassMark()));
         }
     }
 
