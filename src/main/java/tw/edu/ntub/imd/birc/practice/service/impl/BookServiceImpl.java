@@ -101,9 +101,8 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     @Override
     public void delete(String isbn) {
         isbn = isbnService.clean(isbn);
-        if (!bookDAO.existsById(isbn)) {
-            throw new NotFoundException("找不到該 ISBN");
-        }
-        bookDAO.deleteById(isbn);
+        Book book = bookDAO.findById(isbn)
+                .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
+        bookDAO.delete(book);
     }
 }
