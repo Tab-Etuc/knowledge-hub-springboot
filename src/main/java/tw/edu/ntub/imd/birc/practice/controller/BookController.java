@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tw.edu.ntub.imd.birc.practice.databaseconfig.entity.enumerate.BookType;
 import tw.edu.ntub.imd.birc.practice.exception.NotFoundException;
+import tw.edu.ntub.imd.birc.practice.controller.assembler.BookResponseAssembler;
 import tw.edu.ntub.imd.birc.practice.service.BookService;
 import tw.edu.ntub.imd.birc.practice.service.BorrowRecordService;
 import tw.edu.ntub.imd.birc.practice.service.BorrowingService;
@@ -16,15 +17,9 @@ import tw.edu.ntub.imd.birc.practice.service.dto.BookBean;
 import tw.edu.ntub.imd.birc.practice.service.dto.BookListBean;
 import tw.edu.ntub.imd.birc.practice.service.dto.BorrowRecordBean;
 import tw.edu.ntub.imd.birc.practice.util.http.ResponseEntityBuilder;
-import tw.edu.ntub.imd.birc.practice.util.json.array.ArrayData;
 import tw.edu.ntub.imd.birc.practice.util.json.object.ObjectData;
-import tw.edu.ntub.imd.birc.practice.service.strategy.BookStrategyFactory;
 
-import tw.edu.ntub.imd.birc.practice.util.date.LocalDateTimeUtils;
-
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/books")
@@ -34,18 +29,18 @@ public class BookController {
     private final BorrowRecordService borrowRecordService;
     private final BorrowingService borrowingService;
     private final IsbnService isbnService;
-    private final BookStrategyFactory strategyFactory;
+    private final BookResponseAssembler bookResponseAssembler;
 
     public BookController(BookService bookService,
                           BorrowRecordService borrowRecordService,
                           BorrowingService borrowingService,
                           IsbnService isbnService,
-                          BookStrategyFactory strategyFactory) {
+                          BookResponseAssembler bookResponseAssembler) {
         this.bookService = bookService;
         this.borrowRecordService = borrowRecordService;
         this.borrowingService = borrowingService;
         this.isbnService = isbnService;
-        this.strategyFactory = strategyFactory;
+        this.bookResponseAssembler = bookResponseAssembler;
     }
 
     @PostMapping("")
@@ -68,23 +63,9 @@ public class BookController {
 
         BookListBean bookListBean = bookService.searchBooks(keyword, type, available, pageable);
 
-        ArrayData booksArray = new ArrayData();
-        for (BookBean book : bookListBean.getBooks()) {
-            booksArray.addObject()
-                    .add("isbn", book.getIsbn())
-                    .add("title", book.getTitle())
-                    .add("type", book.getType().name())
-                    .add("classification", book.getClassification())
-                    .add("isAvailable", book.getBorrowedAt() == null);
-        }
-
-        ObjectData data = new ObjectData()
-                .add("total_count", bookListBean.getTotalCount())
-                .add("books", booksArray);
-
         return ResponseEntityBuilder.success()
                 .message("查詢成功")
-                .data(data)
+                .data(bookResponseAssembler.toListResponse(bookListBean))
                 .build();
     }
 
@@ -94,23 +75,9 @@ public class BookController {
         BookBean book = bookService.getByIsbn(isbn)
                 .orElseThrow(() -> new NotFoundException("找不到該 ISBN"));
 
-        ObjectData data = new ObjectData()
-                .add("isbn", book.getIsbn())
-                .add("title", book.getTitle())
-                .add("author", book.getAuthor())
-                .add("type", book.getType().name())
-                .add("publishedAt", book.getPublishedAt());
-
-        addDateTimeField(data, "borrowedAt", book.getBorrowedAt());
-        addDateTimeField(data, "returnedAt", book.getReturnedAt());
-
-        data.add("classification", book.getClassification());
-
-        strategyFactory.getStrategy(book.getType()).addResponseFields(book, data);
-
         return ResponseEntityBuilder.success()
                 .message("查詢成功")
-                .data(data)
+                .data(bookResponseAssembler.toDetailResponse(book))
                 .build();
     }
 
@@ -163,23 +130,9 @@ public class BookController {
 
         List<BorrowRecordBean> records = borrowRecordService.getRecordsByIsbn(isbn);
 
-        ArrayData recordsArray = new ArrayData();
-        for (BorrowRecordBean record : records) {
-            ObjectData recordData = recordsArray.addObject();
-            addDateTimeField(recordData, "borrowedAt", record.getBorrowedAt());
-            addDateTimeField(recordData, "returnedAt", record.getReturnedAt());
-        }
-
         return ResponseEntityBuilder.success()
                 .message("查詢成功")
-                .data(recordsArray)
+                .data(bookResponseAssembler.toRecordsResponse(records))
                 .build();
-    }
-
-
-    private void addDateTimeField(ObjectData data, String key, LocalDateTime dateTime) {
-        data.add(key, Optional.ofNullable(dateTime)
-                .map(LocalDateTimeUtils::formatIso8601)
-                .orElse(null));
     }
 }
