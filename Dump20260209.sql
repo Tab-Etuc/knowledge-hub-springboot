@@ -40,6 +40,7 @@ CREATE TABLE `book` (
   `classification` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `version` bigint NOT NULL DEFAULT '0',
   PRIMARY KEY (`isbn`),
   KEY `idx_type` (`type`),
   KEY `idx_borrowed_at` (`borrowed_at`),

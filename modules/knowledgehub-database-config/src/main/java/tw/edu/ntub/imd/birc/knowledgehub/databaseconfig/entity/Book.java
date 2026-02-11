@@ -62,6 +62,10 @@ public class Book implements Serializable, Persistable<String> {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ChineseBookDetail chineseBookDetail;
 

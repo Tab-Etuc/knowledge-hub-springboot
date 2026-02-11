@@ -7,6 +7,7 @@ import org.springframework.beans.InvalidPropertyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -46,6 +47,16 @@ public class ExceptionHandleController {
     public ResponseEntity<String> handleNotFoundException(NotFoundException e) {
         return ResponseEntityBuilder.error(e)
                 .status(HttpStatus.NOT_FOUND)
+                .build();
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<String> handleOptimisticLockException(ObjectOptimisticLockingFailureException e) {
+        log.warn("樂觀鎖衝突: {}", e.getMessage());
+        return ResponseEntityBuilder.error()
+                .status(HttpStatus.CONFLICT)
+                .errorCode("Book - ConcurrentModification")
+                .message("資料已被其他人修改，請重新查詢後再試")
                 .build();
     }
 
