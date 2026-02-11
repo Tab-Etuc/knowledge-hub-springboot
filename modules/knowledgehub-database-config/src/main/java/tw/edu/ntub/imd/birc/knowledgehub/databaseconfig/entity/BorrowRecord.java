@@ -1,6 +1,7 @@
 package tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,9 +11,10 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @ToString(exclude = {"book"})
-@EqualsAndHashCode(exclude = {"book"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "borrow_record")
 @EntityListeners(AuditingEntityListener.class)
@@ -21,6 +23,7 @@ public class BorrowRecord implements Serializable, Persistable<Long> {
     @Transient
     private Boolean save;
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

@@ -1,6 +1,7 @@
 package tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
@@ -14,9 +15,10 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @ToString(exclude = {"chineseBookDetail", "westernBookDetail", "academicBookDetail", "childrenBookDetail"})
-@EqualsAndHashCode(exclude = {"chineseBookDetail", "westernBookDetail", "academicBookDetail", "childrenBookDetail"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "book")
 @EntityListeners(AuditingEntityListener.class)
@@ -25,6 +27,7 @@ public class Book implements Serializable, Persistable<String> {
     @Transient
     private Boolean save;
 
+    @EqualsAndHashCode.Include
     @Id
     @Column(name = "isbn", length = 20, nullable = false)
     private String isbn;
