@@ -97,7 +97,7 @@ public class BookController {
 
     @PostMapping("/{isbn}/borrow")
     public ResponseEntity<String> borrowBook(@PathVariable String isbn) {
-        LocalDateTime borrowedAt = borrowingService.borrowBook(isbn);
+        LocalDateTime borrowedAt = borrowingService.saveBorrowRecord(isbn);
         ObjectData data = new ObjectData().add("borrowedAt", LocalDateTimeUtils.formatIso8601(borrowedAt));
         return ResponseEntityBuilder.success()
                 .message("借閱成功")
@@ -107,7 +107,7 @@ public class BookController {
 
     @PostMapping("/{isbn}/return")
     public ResponseEntity<String> returnBook(@PathVariable String isbn) {
-        LocalDateTime returnedAt = borrowingService.returnBook(isbn);
+        LocalDateTime returnedAt = borrowingService.saveReturnRecord(isbn);
         ObjectData data = new ObjectData().add("returnedAt", LocalDateTimeUtils.formatIso8601(returnedAt));
         return ResponseEntityBuilder.success()
                 .message("歸還成功")

@@ -28,7 +28,7 @@ public class BorrowingServiceImpl implements BorrowingService {
     }
 
     @Override
-    public LocalDateTime borrowBook(String isbn) {
+    public LocalDateTime saveBorrowRecord(String isbn) {
         isbn = isbnService.clean(isbn);
         Book book = bookDAO.findById(isbn)
                 .orElseThrow(NotFoundException::byIsbn);
@@ -53,7 +53,7 @@ public class BorrowingServiceImpl implements BorrowingService {
     }
 
     @Override
-    public LocalDateTime returnBook(String isbn) {
+    public LocalDateTime saveReturnRecord(String isbn) {
         isbn = isbnService.clean(isbn);
         Book book = bookDAO.findById(isbn)
                 .orElseThrow(NotFoundException::byIsbn);

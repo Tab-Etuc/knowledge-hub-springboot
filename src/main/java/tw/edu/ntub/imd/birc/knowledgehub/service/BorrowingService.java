@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public interface BorrowingService {
 
-    LocalDateTime borrowBook(String isbn);
+    LocalDateTime saveBorrowRecord(String isbn);
 
-    LocalDateTime returnBook(String isbn);
+    LocalDateTime saveReturnRecord(String isbn);
 }
