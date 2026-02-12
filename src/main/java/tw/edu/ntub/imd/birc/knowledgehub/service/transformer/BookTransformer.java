@@ -1,5 +1,6 @@
 package tw.edu.ntub.imd.birc.knowledgehub.service.transformer;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.knowledgehub.service.dto.BookBean;
@@ -8,13 +9,10 @@ import tw.edu.ntub.imd.birc.knowledgehub.service.strategy.BookStrategyFactory;
 import javax.annotation.Nonnull;
 
 @Component
+@RequiredArgsConstructor
 public class BookTransformer implements BeanEntityTransformer<BookBean, Book> {
 
     private final BookStrategyFactory strategyFactory;
-
-    public BookTransformer(BookStrategyFactory strategyFactory) {
-        this.strategyFactory = strategyFactory;
-    }
 
     @Nonnull
     @Override
