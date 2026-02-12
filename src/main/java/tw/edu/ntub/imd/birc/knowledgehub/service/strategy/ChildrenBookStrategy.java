@@ -1,6 +1,8 @@
 package tw.edu.ntub.imd.birc.knowledgehub.service.strategy;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.dao.ChildrenBookDetailDAO;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.ChildrenBookDetail;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.enumerate.BookType;
@@ -11,7 +13,10 @@ import tw.edu.ntub.imd.birc.knowledgehub.util.json.object.ObjectData;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
+
+    private final ChildrenBookDetailDAO childrenBookDetailDAO;
 
     @Override
     public void validate(BookBean bean) {
@@ -33,13 +38,12 @@ public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
         detail.setAgeLowerBound(bean.getAgeLowerBound());
         detail.setAgeUpperBound(bean.getAgeUpperBound());
         detail.setTheme(bean.getTheme());
-        book.setChildrenBookDetail(detail);
+        childrenBookDetailDAO.save(detail);
     }
 
     @Override
     public void updateDetail(Book book, BookBean bean) {
-        ChildrenBookDetail detail = book.getChildrenBookDetail();
-        if (detail != null) {
+        childrenBookDetailDAO.findById(book.getIsbn()).ifPresent(detail -> {
             Integer newLower = bean.getAgeLowerBound() != null ? bean.getAgeLowerBound() : detail.getAgeLowerBound();
             Integer newUpper = bean.getAgeUpperBound() != null ? bean.getAgeUpperBound() : detail.getAgeUpperBound();
 
@@ -50,7 +54,7 @@ public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
             Optional.ofNullable(bean.getAgeLowerBound()).ifPresent(detail::setAgeLowerBound);
             Optional.ofNullable(bean.getAgeUpperBound()).ifPresent(detail::setAgeUpperBound);
             Optional.ofNullable(bean.getTheme()).ifPresent(detail::setTheme);
-        }
+        });
     }
 
     @Override
@@ -62,11 +66,11 @@ public class ChildrenBookStrategy extends AbstractBookTypeStrategy {
 
     @Override
     public void populateBean(Book book, BookBean bean) {
-        if (book.getChildrenBookDetail() != null) {
-            bean.setAgeLowerBound(book.getChildrenBookDetail().getAgeLowerBound());
-            bean.setAgeUpperBound(book.getChildrenBookDetail().getAgeUpperBound());
-            bean.setTheme(book.getChildrenBookDetail().getTheme());
-        }
+        childrenBookDetailDAO.findById(book.getIsbn()).ifPresent(detail -> {
+            bean.setAgeLowerBound(detail.getAgeLowerBound());
+            bean.setAgeUpperBound(detail.getAgeUpperBound());
+            bean.setTheme(detail.getTheme());
+        });
     }
 
     @Override

@@ -54,15 +54,15 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
         book.setClassification(classification);
         book.setSave(true);
 
-        strategy.createDetail(book, bookBean);
+        Book savedBook = bookDAO.save(book);  // 先存 Book
+        strategy.createDetail(savedBook, bookBean);  // 再存 Detail（FK 需要 Book 先存在）
 
-        Book savedBook = bookDAO.save(book);
         return bookTransformer.transferToBean(savedBook);
     }
 
     @Override
     public Optional<BookBean> getByIsbn(String isbn) {
-        return bookDAO.findWithDetailsByIsbn(isbnService.clean(isbn)).map(bookTransformer::transferToBean);
+        return bookDAO.findById(isbnService.clean(isbn)).map(bookTransformer::transferToBean);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     @Override
     public void update(String isbn, BookBean bookBean) {
         isbn = isbnService.clean(isbn);
-        Book book = bookDAO.findWithDetailsByIsbn(isbn)
+        Book book = bookDAO.findById(isbn)
                 .orElseThrow(NotFoundException::byIsbn);
 
         Optional.ofNullable(bookBean.getTitle()).ifPresent(book::setTitle);
@@ -95,7 +95,7 @@ public class BookServiceImpl extends BaseServiceImpl<BookBean, Book, String> imp
     @Override
     public void delete(String isbn) {
         isbn = isbnService.clean(isbn);
-        Book book = bookDAO.findWithDetailsByIsbn(isbn)
+        Book book = bookDAO.findById(isbn)
                 .orElseThrow(NotFoundException::byIsbn);
         bookDAO.delete(book);
     }

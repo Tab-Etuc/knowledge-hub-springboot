@@ -1,6 +1,8 @@
 package tw.edu.ntub.imd.birc.knowledgehub.service.strategy;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.dao.ChineseBookDetailDAO;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.ChineseBookDetail;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.enumerate.BookType;
@@ -11,7 +13,10 @@ import tw.edu.ntub.imd.birc.knowledgehub.util.json.object.ObjectData;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class ChineseBookStrategy extends AbstractBookTypeStrategy {
+
+    private final ChineseBookDetailDAO chineseBookDetailDAO;
 
     private static final String CHINESE_DDC_PATTERN = "^[A-Z]\\d.*$";
 
@@ -31,15 +36,15 @@ public class ChineseBookStrategy extends AbstractBookTypeStrategy {
         ChineseBookDetail detail = new ChineseBookDetail();
         detail.setIsbn(book.getIsbn());
         detail.setChineseDdcCode(bean.getChineseDdcCode());
-        book.setChineseBookDetail(detail);
+        chineseBookDetailDAO.save(detail);
     }
 
     @Override
     public void updateDetail(Book book, BookBean bean) {
         if (bean.getChineseDdcCode() != null) {
             validatePattern(bean.getChineseDdcCode(), CHINESE_DDC_PATTERN, new ChineseBookCodeInvalidException());
-            safeUpdateDetail(book, Book::getChineseBookDetail,
-                    detail -> detail.setChineseDdcCode(bean.getChineseDdcCode()));
+            chineseBookDetailDAO.findById(book.getIsbn())
+                    .ifPresent(detail -> detail.setChineseDdcCode(bean.getChineseDdcCode()));
         }
     }
 
@@ -50,9 +55,8 @@ public class ChineseBookStrategy extends AbstractBookTypeStrategy {
 
     @Override
     public void populateBean(Book book, BookBean bean) {
-        if (book.getChineseBookDetail() != null) {
-            bean.setChineseDdcCode(book.getChineseBookDetail().getChineseDdcCode());
-        }
+        chineseBookDetailDAO.findById(book.getIsbn())
+                .ifPresent(detail -> bean.setChineseDdcCode(detail.getChineseDdcCode()));
     }
 
     @Override

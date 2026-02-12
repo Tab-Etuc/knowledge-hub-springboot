@@ -1,6 +1,8 @@
 package tw.edu.ntub.imd.birc.knowledgehub.service.strategy;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.dao.WesternBookDetailDAO;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.Book;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.WesternBookDetail;
 import tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity.enumerate.BookType;
@@ -11,7 +13,10 @@ import tw.edu.ntub.imd.birc.knowledgehub.util.json.object.ObjectData;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class WesternBookStrategy extends AbstractBookTypeStrategy {
+
+    private final WesternBookDetailDAO westernBookDetailDAO;
 
     private static final String DEWEY_DECIMAL_PATTERN = "^\\d{3}(\\.\\d+)?$";
 
@@ -31,15 +36,15 @@ public class WesternBookStrategy extends AbstractBookTypeStrategy {
         WesternBookDetail detail = new WesternBookDetail();
         detail.setIsbn(book.getIsbn());
         detail.setDeweyDecimalCode(bean.getDeweyDecimalCode());
-        book.setWesternBookDetail(detail);
+        westernBookDetailDAO.save(detail);
     }
 
     @Override
     public void updateDetail(Book book, BookBean bean) {
         if (bean.getDeweyDecimalCode() != null) {
             validatePattern(bean.getDeweyDecimalCode(), DEWEY_DECIMAL_PATTERN, new WesternBookCodeInvalidException());
-            safeUpdateDetail(book, Book::getWesternBookDetail,
-                    detail -> detail.setDeweyDecimalCode(bean.getDeweyDecimalCode()));
+            westernBookDetailDAO.findById(book.getIsbn())
+                    .ifPresent(detail -> detail.setDeweyDecimalCode(bean.getDeweyDecimalCode()));
         }
     }
 
@@ -50,9 +55,8 @@ public class WesternBookStrategy extends AbstractBookTypeStrategy {
 
     @Override
     public void populateBean(Book book, BookBean bean) {
-        if (book.getWesternBookDetail() != null) {
-            bean.setDeweyDecimalCode(book.getWesternBookDetail().getDeweyDecimalCode());
-        }
+        westernBookDetailDAO.findById(book.getIsbn())
+                .ifPresent(detail -> bean.setDeweyDecimalCode(detail.getDeweyDecimalCode()));
     }
 
     @Override

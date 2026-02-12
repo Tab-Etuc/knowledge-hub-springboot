@@ -3,7 +3,6 @@ package tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@ToString(exclude = {"chineseBookDetail", "westernBookDetail", "academicBookDetail", "childrenBookDetail"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "book")
@@ -66,17 +64,6 @@ public class Book implements Serializable, Persistable<String> {
     @Column(name = "version")
     private Long version;
 
-    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private ChineseBookDetail chineseBookDetail;
-
-    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private WesternBookDetail westernBookDetail;
-
-    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private AcademicBookDetail academicBookDetail;
-
-    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private ChildrenBookDetail childrenBookDetail;
 
     @Override
     public String getId() {

@@ -3,14 +3,12 @@ package tw.edu.ntub.imd.birc.knowledgehub.databaseconfig.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Getter
 @Setter
-@ToString(exclude = {"book"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "western_book_detail")
@@ -23,8 +21,4 @@ public class WesternBookDetail implements Serializable {
 
     @Column(name = "dewey_decimal_code", length = 50, nullable = false)
     private String deweyDecimalCode;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "isbn", referencedColumnName = "isbn", insertable = false, updatable = false)
-    private Book book;
 }
